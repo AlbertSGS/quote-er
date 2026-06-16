@@ -1,15 +1,17 @@
 async function loadLogoPng() {
-  try {
-    const res = await fetch('assets/logo.png');
-    if (!res.ok) return null;
-    const blob = await res.blob();
-    return new Promise(resolve => {
-      const reader = new FileReader();
-      reader.onload  = () => resolve(reader.result);
-      reader.onerror = () => resolve(null);
-      reader.readAsDataURL(blob);
-    });
-  } catch(e) {}
+  for (const ext of ['png', 'svg', 'jpg', 'jpeg', 'webp']) {
+    try {
+      const res = await fetch(`assets/logo.${ext}`);
+      if (!res.ok) continue;
+      const blob = await res.blob();
+      return await new Promise(resolve => {
+        const reader = new FileReader();
+        reader.onload  = () => resolve(reader.result);
+        reader.onerror = () => resolve(null);
+        reader.readAsDataURL(blob);
+      });
+    } catch(e) {}
+  }
   return null;
 }
 
