@@ -5,6 +5,7 @@ function render() {
   renderTabBar();
   renderGrid();
   renderConfigs();
+  renderProfileSection();
   renderSummary();
 }
 
@@ -145,6 +146,65 @@ function renderSummary() {
       </div>
       <p class="disclaimer">${s('disclaimer')}</p>
       <button class="btn-print" onclick="printQuote()">${s('printEstimate')}</button>
+    </div>`;
+}
+
+function renderProfileSection() {
+  const section = document.getElementById('profile-section');
+  if (!section) return;
+  const p = state.profile;
+
+  const logoHtml = p.logoDataUrl
+    ? `<div class="profile-logo-preview">
+         <img src="${p.logoDataUrl}" alt="Logo" />
+         <div class="profile-logo-actions">
+           <label class="btn-upload-logo">
+             Change Logo
+             <input type="file" accept="image/*" onchange="handleLogoUpload(this)" />
+           </label>
+           <button class="btn-remove-logo" onclick="clearLogo()">Remove</button>
+         </div>
+       </div>`
+    : `<label class="btn-upload-logo">
+         + Upload Logo
+         <input type="file" accept="image/*" onchange="handleLogoUpload(this)" />
+       </label>`;
+
+  section.innerHTML = `
+    <div class="section-title">Quote Details</div>
+    <div class="config-card">
+      <div class="config-header">
+        <span class="config-icon">📋</span>
+        <h3>Client &amp; Company Information</h3>
+      </div>
+      <div class="profile-logo-area">
+        <div class="profile-logo-label">Company Logo</div>
+        ${logoHtml}
+      </div>
+      <div class="profile-subsection-title">Client</div>
+      <div class="config-fields">
+        ${profileField('clientName',      'To (Client Name)',   p.clientName,      'e.g. John Smith')}
+        ${profileField('serviceLocation', 'Service Location',   p.serviceLocation, 'e.g. 123 Main St')}
+        ${profileField('contactInfo',     'Contact Info',       p.contactInfo,     'e.g. john@email.com')}
+      </div>
+      <div class="profile-subsection-title">Company</div>
+      <div class="config-fields">
+        ${profileField('companyName',   'Company Name',    p.companyName,   'e.g. BBN Renovations Ltd.')}
+        ${profileField('companyEmail',  'Company Email',   p.companyEmail,  'e.g. info@company.com')}
+        ${profileField('contactName',   'Contact Name',    p.contactName,   'e.g. Jane Doe')}
+        ${profileField('contactPhone',  'Contact Phone',   p.contactPhone,  'e.g. (604) 555-0100')}
+        ${profileField('designerName',  'Designer Name',   p.designerName,  'e.g. Alex Lee')}
+        ${profileField('designerPhone', 'Designer Phone',  p.designerPhone, 'e.g. (604) 555-0200')}
+      </div>
+    </div>`;
+}
+
+function profileField(field, label, value, placeholder) {
+  return `
+    <div class="field-group">
+      <label>${label}</label>
+      <input type="text" value="${escapeHtml(value)}" placeholder="${escapeHtml(placeholder)}"
+             oninput="updateProfile('${field}', this.value)" />
     </div>`;
 }
 

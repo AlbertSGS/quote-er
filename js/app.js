@@ -40,6 +40,29 @@ function resetAll() {
   render();
 }
 
+function updateProfile(field, value) {
+  state.profile[field] = value;
+  saveState();
+}
+
+function handleLogoUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    state.profile.logoDataUrl = e.target.result;
+    saveState();
+    renderProfileSection();
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearLogo() {
+  state.profile.logoDataUrl = '';
+  saveState();
+  renderProfileSection();
+}
+
 // ---- Init ----
 
 loadState();

@@ -5,7 +5,14 @@ const state = {
   lang: 'en',
   selected: [],
   values: {},
-  bathrooms: []
+  bathrooms: [],
+  profile: {
+    clientName: '', serviceLocation: '', contactInfo: '',
+    companyName: '', companyEmail: '',
+    contactName: '', contactPhone: '',
+    designerName: '', designerPhone: '',
+    logoDataUrl: ''
+  }
 };
 
 const STORAGE_KEY = 'renovation-calc-v1';
@@ -17,7 +24,8 @@ function saveState() {
       lang:      state.lang,
       selected:  state.selected,
       values:    state.values,
-      bathrooms: state.bathrooms
+      bathrooms: state.bathrooms,
+      profile:   state.profile
     }));
   } catch (e) {}
 }
@@ -32,6 +40,7 @@ function loadState() {
     state.selected  = saved.selected  || [];
     state.values    = saved.values    || {};
     state.bathrooms = saved.bathrooms || [];
+    if (saved.profile) Object.assign(state.profile, saved.profile);
     const enBtn = document.getElementById('lang-btn-en');
     const zhBtn = document.getElementById('lang-btn-zh');
     if (enBtn) enBtn.classList.toggle('active', state.lang === 'en');
@@ -57,6 +66,12 @@ function setLang(lang) {
 }
 
 // ---- Utils ----
+
+function escapeHtml(str) {
+  return String(str ?? '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
 
 function fmt(n) {
   if (!n || n === 0) return '$0';

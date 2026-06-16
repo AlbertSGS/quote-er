@@ -29,7 +29,7 @@ async function printQuote() {
       <p style="color:#fff;font-size:15px">Generating quotation…</p>
     </body></html>`);
 
-  const logoSvg = await loadLogoPng();
+  const logoSvg = state.profile.logoDataUrl || await loadLogoPng();
 
   pdfMake.createPdf(buildDocDef(logoSvg)).getBlob(blob => {
     const url = URL.createObjectURL(blob);
@@ -42,6 +42,7 @@ function buildDocDef(logoSvg) {
   const RED    = '#B12418';
   const RULE   = '#DDDDDD';
   const today  = new Date().toLocaleDateString('en-CA');
+  const p      = state.profile;
 
   const ordered  = state.selected.map(id => getComponent(id)).filter(Boolean);
   const subtotal = ordered.reduce((sum, comp) => sum + calcComponent(comp), 0);
@@ -55,9 +56,9 @@ function buildDocDef(logoSvg) {
   const pageHeader = () => ({
     stack: [
       logoEl,
-      { text: 'To:',                fontSize: 9, margin: [0, 8, 0, 2] },
-      { text: 'Service Locations:', fontSize: 9, margin: [0, 0, 0, 2] },
-      { text: 'Contact info:',      fontSize: 9, margin: [0, 0, 0, 4] },
+      { text: `To: ${p.clientName || ''}`,                    fontSize: 9, margin: [0, 8, 0, 2] },
+      { text: `Service Locations: ${p.serviceLocation || ''}`, fontSize: 9, margin: [0, 0, 0, 2] },
+      { text: `Contact info: ${p.contactInfo || ''}`,          fontSize: 9, margin: [0, 0, 0, 4] },
       { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 503, y2: 0, lineWidth: 0.5, lineColor: RULE }] },
     ],
     margin: [46, 16, 46, 0]
@@ -69,16 +70,16 @@ function buildDocDef(logoSvg) {
       {
         columns: [
           { stack: [
-            { text: '[Company Name]',    fontSize: 8, bold: true },
-            { text: 'company@email.com', fontSize: 8, color: '#666' }
+            { text: p.companyName  || '[Company Name]',    fontSize: 8, bold: true },
+            { text: p.companyEmail || 'company@email.com', fontSize: 8, color: '#666' }
           ]},
           { stack: [
-            { text: '[Name]',        fontSize: 8, bold: true },
-            { text: '(XXX) XXX-XXXX', fontSize: 8, color: '#666' }
+            { text: p.contactName  || '[Name]',         fontSize: 8, bold: true },
+            { text: p.contactPhone || '(XXX) XXX-XXXX', fontSize: 8, color: '#666' }
           ], alignment: 'center' },
           { stack: [
-            { text: '[Designer]',     fontSize: 8, bold: true },
-            { text: '(XXX) XXX-XXXX', fontSize: 8, color: '#666' }
+            { text: p.designerName  || '[Designer]',     fontSize: 8, bold: true },
+            { text: p.designerPhone || '(XXX) XXX-XXXX', fontSize: 8, color: '#666' }
           ], alignment: 'right' },
         ],
         margin: [0, 4, 0, 0]
@@ -133,8 +134,9 @@ function buildDocDef(logoSvg) {
     margin: [0, 0, 0, 18]
   });
 
+  const companyName = p.companyName || 'BBN Renovations Ltd.';
   content.push({
-    text: 'BBN Renovations Ltd. promises for quality work and 1 year warranty for all projects done, with no extra cost.',
+    text: `${companyName} promises quality work and a 1 year warranty for all projects done, with no extra cost.`,
     fontSize: 9
   });
 
