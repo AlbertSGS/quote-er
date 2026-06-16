@@ -157,14 +157,12 @@ function renderProfileSection() {
   const logoHtml = p.logoDataUrl
     ? `<div class="profile-logo-preview">
          <img src="${p.logoDataUrl}" alt="Logo" />
-         <div class="profile-logo-actions">
-           <label class="btn-upload-logo">
-             Change Logo
-             <input type="file" accept="image/*" onchange="handleLogoUpload(this)" />
-           </label>
-           <button class="btn-remove-logo" onclick="clearLogo()">Remove</button>
-         </div>
-       </div>`
+         <button class="btn-remove-logo" onclick="clearLogo()" title="Remove logo">✕</button>
+       </div>
+       <label class="btn-upload-logo">
+         Change Logo
+         <input type="file" accept="image/*" onchange="handleLogoUpload(this)" />
+       </label>`
     : `<label class="btn-upload-logo">
          + Upload Logo
          <input type="file" accept="image/*" onchange="handleLogoUpload(this)" />

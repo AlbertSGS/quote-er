@@ -753,9 +753,9 @@ body {
 }
 
 .profile-logo-preview {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
 }
 
 .profile-logo-preview img {
@@ -766,12 +766,7 @@ body {
   border: 1px solid var(--border);
   background: #fff;
   padding: 2px;
-}
-
-.profile-logo-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  display: block;
 }
 
 .btn-upload-logo {
@@ -792,17 +787,25 @@ body {
 .btn-upload-logo input[type="file"] { display: none; }
 
 .btn-remove-logo {
-  background: none;
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  color: white;
   border: none;
-  color: var(--text-muted);
-  font-size: 12px;
+  font-size: 9px;
+  font-weight: 700;
   cursor: pointer;
-  font-family: inherit;
-  padding: 0;
-  text-decoration: underline;
-  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: background 0.15s;
 }
-.btn-remove-logo:hover { color: #c0392b; }
+.btn-remove-logo:hover { background: #c0392b; }
 
 .profile-subsection-title {
   font-size: 10px;

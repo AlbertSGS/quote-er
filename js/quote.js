@@ -134,7 +134,7 @@ function buildDocDef(logoSvg) {
     margin: [0, 0, 0, 18]
   });
 
-  const companyName = p.companyName || 'BBN Renovations Ltd.';
+  const companyName = p.companyName || 'Company Ltd.';
   content.push({
     text: `${companyName} promises quality work and a 1 year warranty for all projects done, with no extra cost.`,
     fontSize: 9
