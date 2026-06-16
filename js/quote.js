@@ -111,20 +111,12 @@ function buildDocDef(logoSvg) {
   if (ordered.length === 0) {
     content.push({ text: isZh ? '暂无项目' : 'No items selected', fontSize: 9, color: '#AAA', italics: true, margin: [0, 0, 0, 14] });
   } else {
-    ordered.forEach((comp, i) => {
-      const sectionTotal = calcComponent(comp);
-      const rows         = buildSectionRows(comp, isZh);
-      content.push({ text: `${i + 1}.  ${t(comp, 'name')}`, fontSize: 11, bold: true, margin: [0, 0, 0, 6] });
-      content.push({ table: { widths: [100, '*', 72], body: [tableHeaderRow, ...rows] }, layout: tableLayout, margin: [0, 0, 0, 4] });
-      content.push({
-        text: [
-          { text: isZh ? '含人工及材料费：' : 'Cost with labour and materials:  ', fontSize: 9 },
-          { text: `${fmt(sectionTotal)} CAD`, fontSize: 9, bold: true }
-        ],
-        alignment: 'right',
-        margin: [0, 0, 0, 16]
-      });
+    const allRows = [];
+    ordered.forEach(comp => {
+      const rows = buildSectionRows(comp, isZh);
+      allRows.push(...rows);
     });
+    content.push({ table: { widths: [100, '*', 72], body: [tableHeaderRow, ...allRows] }, layout: tableLayout, margin: [0, 0, 0, 16] });
   }
 
   content.push({
