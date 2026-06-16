@@ -134,7 +134,7 @@ function buildDocDef(logoSvg) {
   });
 
   content.push({
-    text: '"BBN Renovations Ltd. Promises for quality work and 1 year warranty for all projects done. With no extra cost"',
+    text: 'BBN Renovations Ltd. promises for quality work and 1 year warranty for all projects done, with no extra cost.',
     fontSize: 9
   });
 
