@@ -115,8 +115,11 @@ function calcLabourTotal(bath) {
 
 function calcOneBathroom(bath) {
   const labour = calcLabourTotal(bath);
-  const items  = bath.items.reduce((sum, bi) =>
-    sum + (parseFloat(bi.qty) || 0) * (parseFloat(bi.unitPrice) || 0), 0);
+  const items  = bath.items.reduce((sum, bi) => {
+    const def   = BATHROOM_ITEMS.find(i => i.id === bi.itemId);
+    const price = parseFloat(bi.unitPrice) || (def ? def.defaultPrice : 0);
+    return sum + (parseFloat(bi.qty) || 0) * price;
+  }, 0);
   return labour + items;
 }
 

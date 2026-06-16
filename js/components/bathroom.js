@@ -139,8 +139,10 @@ function refreshBathTotals(bathId) {
   const ltEl = document.getElementById(`bath-labour-total-${bathId}`);
   if (ltEl) ltEl.textContent = fmt(calcLabourTotal(bath));
   bath.items.forEach(bi => {
-    const el = document.getElementById(`bath-item-total-${bathId}-${bi.itemId}`);
-    if (el) el.textContent = fmt((parseFloat(bi.qty) || 0) * (parseFloat(bi.unitPrice) || 0));
+    const el    = document.getElementById(`bath-item-total-${bathId}-${bi.itemId}`);
+    const def   = BATHROOM_ITEMS.find(i => i.id === bi.itemId);
+    const price = parseFloat(bi.unitPrice) || (def ? def.defaultPrice : 0);
+    if (el) el.textContent = fmt((parseFloat(bi.qty) || 0) * price);
   });
   const btEl = document.getElementById(`bath-total-${bathId}`);
   if (btEl) btEl.textContent = fmt(calcOneBathroom(bath));
@@ -195,15 +197,16 @@ function renderOneBathroom(bath) {
       ${bath.items.map(bi => {
         const def   = BATHROOM_ITEMS.find(i => i.id === bi.itemId);
         if (!def) return '';
-        const total = (parseFloat(bi.qty) || 0) * (parseFloat(bi.unitPrice) || 0);
+        const price = parseFloat(bi.unitPrice) || def.defaultPrice;
+        const total = (parseFloat(bi.qty) || 0) * price;
         return `
           <div class="item-row">
             <span class="item-name">${t(def, 'label')} <span class="item-unit">(${def.unit})</span></span>
             <input class="item-input" type="number" min="0" step="any"
-              value="${bi.qty}" placeholder="0"
+              value="${bi.qty}" placeholder="1"
               oninput="updateBathItem('${bath.id}', '${bi.itemId}', 'qty', this.value)" />
             <input class="item-input" type="number" min="0" step="any"
-              value="${bi.unitPrice}" placeholder="0"
+              value="${bi.unitPrice}" placeholder="${def.defaultPrice}"
               oninput="updateBathItem('${bath.id}', '${bi.itemId}', 'unitPrice', this.value)" />
             <span class="item-total" id="bath-item-total-${bath.id}-${bi.itemId}">${fmt(total)}</span>
             <button class="item-remove" onclick="removeBathItem('${bath.id}', '${bi.itemId}')">✕</button>
