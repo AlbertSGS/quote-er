@@ -1,3 +1,78 @@
+// ---- Bathroom item catalogue ----
+
+const BATHROOM_ITEMS = [
+  // Structural / substrate
+  { id: 'misc-materials',  label: 'Miscellaneous Materials (e.g. cement)',  label_zh: '辅料 如水泥',              unit: 'lot',    defaultPrice: 0 },
+  { id: 'cement-board',    label: 'Cement Board (3×5)',                     label_zh: '水泥板（3x5）',            unit: 'sheet',  defaultPrice: 0 },
+  { id: 'drywall-moist',   label: 'Moisture-Resistant Drywall (4×8)',       label_zh: '防水drywall（4x8）',       unit: 'sheet',  defaultPrice: 0 },
+  { id: 'drywall-std',     label: 'Drywall (4×8 / 32 sq ft)',               label_zh: 'drywall（32sqft 4x8）',    unit: 'sheet',  defaultPrice: 0 },
+  { id: 'structural-mod',  label: 'Structural Modification (Custom)',        label_zh: '结构改造-个例',            unit: 'lot',    defaultPrice: 0 },
+
+  // Finishes
+  { id: 'paint',           label: 'Paint',                                  label_zh: '油漆',                    unit: 'lot',    defaultPrice: 0 },
+  { id: 'tile-std',        label: 'Tile — Standard (1×2, 2×2)',             label_zh: '瓷砖 标准1*2 2*2',         unit: 'sq ft',  defaultPrice: 0 },
+  { id: 'tile-premium',    label: 'Tile — Premium (2×4, 3×3)',              label_zh: '瓷砖 高端 2*4、3*3',       unit: 'sq ft',  defaultPrice: 0 },
+  { id: 'tile-custom',     label: 'Tile — Custom Case',                     label_zh: '瓷砖 个例',               unit: 'lot',    defaultPrice: 0 },
+  { id: 'water-barrier',   label: 'Water Barrier Strip',                    label_zh: '挡水条',                  unit: 'unit',   defaultPrice: 0 },
+
+  // Plumbing & mechanical
+  { id: 'plumbing-mod',    label: 'Plumbing Modification',                  label_zh: '水路改造',                unit: 'lot',    defaultPrice: 0 },
+  { id: 'electrical-mod',  label: 'Electrical Modification',                label_zh: '电路改造',                unit: 'lot',    defaultPrice: 0 },
+  { id: 'fresh-air',       label: 'Fresh Air System Installation',          label_zh: '新风系统改造',             unit: 'unit',   defaultPrice: 0 },
+  { id: 'exhaust-fan',     label: 'New Exhaust Fan',                        label_zh: '全新换气扇排风',           unit: 'unit',   defaultPrice: 0 },
+
+  // Toilet
+  { id: 'toilet-std',      label: 'Toilet — Standard',                     label_zh: '马桶 标准',               unit: 'unit',   defaultPrice: 0 },
+  { id: 'toilet-smart',    label: 'Toilet — Smart',                        label_zh: '马桶 智能',               unit: 'unit',   defaultPrice: 0 },
+
+  // Vanity
+  { id: 'vanity-24-30',    label: 'Vanity — Standard 24–30"',              label_zh: '洗手台 标准 24-30',        unit: 'unit',   defaultPrice: 0 },
+  { id: 'vanity-32-42',    label: 'Vanity — Standard 32–42"',              label_zh: '洗手台 标准 32-42',        unit: 'unit',   defaultPrice: 0 },
+  { id: 'vanity-45-60',    label: 'Vanity — Standard 45–60"',              label_zh: '洗手台 标准 45-60',        unit: 'unit',   defaultPrice: 0 },
+  { id: 'vanity-70plus',   label: 'Vanity — Standard 70"+',                label_zh: '洗手台 标准 70+',          unit: 'unit',   defaultPrice: 0 },
+  { id: 'vanity-custom',   label: 'Vanity — Custom',                       label_zh: '洗手台 定制',              unit: 'unit',   defaultPrice: 0 },
+  { id: 'vanity-case',     label: 'Vanity — Custom Case',                  label_zh: '洗手台 个例',              unit: 'lot',    defaultPrice: 0 },
+
+  // Faucets
+  { id: 'faucet-vanity-std',  label: 'Vanity Faucet — Standard',           label_zh: '洗手台水龙头-标配',        unit: 'unit',   defaultPrice: 0 },
+  { id: 'faucet-vanity-bg',   label: 'Vanity Faucet — Black Gold',         label_zh: '洗手台水龙头-黑金',        unit: 'unit',   defaultPrice: 0 },
+  { id: 'faucet-shower-std',  label: 'Shower Faucet — Standard',           label_zh: '洗澡水龙头-标准',          unit: 'unit',   defaultPrice: 0 },
+  { id: 'faucet-shower-bg',   label: 'Shower Faucet — Black Gold',         label_zh: '洗澡水龙头-黑金',          unit: 'unit',   defaultPrice: 0 },
+  { id: 'faucet-tub',         label: 'Bathtub Faucet',                     label_zh: '浴缸水龙头',              unit: 'unit',   defaultPrice: 0 },
+
+  // Shower / glass
+  { id: 'door-single-glass',  label: 'Single-Panel Glass Door',            label_zh: '单板玻璃门',              unit: 'unit',   defaultPrice: 0 },
+  { id: 'door-l-glass',       label: 'L-Shaped Glass Door',                label_zh: 'L玻璃门',                 unit: 'unit',   defaultPrice: 0 },
+  { id: 'door-hardware-bg',   label: 'Glass Door Hardware — Black Gold',   label_zh: '玻璃门五金 黑金',          unit: 'set',    defaultPrice: 0 },
+
+  // Bathtub
+  { id: 'tub-dropin',     label: 'Bathtub — Drop-In',                      label_zh: '浴缸 嵌入式',             unit: 'unit',   defaultPrice: 0 },
+  { id: 'tub-freestand',  label: 'Bathtub — Freestanding',                 label_zh: '浴缸 独立',               unit: 'unit',   defaultPrice: 0 },
+  { id: 'tub-custom',     label: 'Bathtub — Custom Case',                  label_zh: '浴缸 个例',               unit: 'lot',    defaultPrice: 0 },
+
+  // Lighting
+  { id: 'pot-lights',     label: 'Pot Lights',                             label_zh: '射灯',                    unit: 'unit',   defaultPrice: 0 },
+  { id: 'mirror-light',   label: 'Vanity Light (mirror front)',            label_zh: '镜前灯',                  unit: 'unit',   defaultPrice: 0 },
+
+  // Mirrors & accessories
+  { id: 'mirror-std',         label: 'Mirror',                             label_zh: '镜子',                    unit: 'unit',   defaultPrice: 0 },
+  { id: 'mirror-led',         label: 'LED Mirror',                         label_zh: 'LED镜子',                 unit: 'unit',   defaultPrice: 0 },
+  { id: 'bath-accessories',   label: 'Bathroom Accessories Set',           label_zh: '卫浴挂件',                unit: 'set',    defaultPrice: 0 },
+];
+
+// ---- Bathroom component definition ----
+
+const COMP_BATHROOM = {
+  id: 'bathroom',
+  name: 'Bathroom',              name_zh: '浴室',
+  icon: '🚿',
+  tagline: 'Labour + materials, per bathroom',
+  tagline_zh: '人工 + 材料，按浴室计算',
+  customType: 'bathroom',
+  fields: [],
+  calculate() { return 0; }
+};
+
 // ---- Bathroom helpers ----
 
 function createEmptyBathroom(num) {

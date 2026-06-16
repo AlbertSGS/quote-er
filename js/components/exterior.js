@@ -1,0 +1,5 @@
+const COMP_EXT_PAINT   = { id: 'ext-paint',   name: 'Exterior Paint',  name_zh: '外墙油漆',   icon: '🏠', tagline: 'Siding, trim & shutters',        tagline_zh: '墙身、线条与百叶',      comingSoon: true, fields: [], calculate() { return 0; } };
+const COMP_EXT_DECK    = { id: 'ext-deck',    name: 'Deck & Patio',    name_zh: '露台与天井', icon: '🌿', tagline: 'Wood, composite & concrete',     tagline_zh: '木材、复合板与混凝土',   comingSoon: true, fields: [], calculate() { return 0; } };
+const COMP_EXT_SIDING  = { id: 'ext-siding',  name: 'Siding',          name_zh: '外墙板',     icon: '🧱', tagline: 'Vinyl, fiber cement & wood',     tagline_zh: '乙烯基、纤维水泥与木材', comingSoon: true, fields: [], calculate() { return 0; } };
+const COMP_EXT_ROOFING = { id: 'ext-roofing', name: 'Roofing',         name_zh: '屋顶',       icon: '🏗️', tagline: 'Shingles, metal & flat roof',    tagline_zh: '沥青瓦、金属与平屋顶',  comingSoon: true, fields: [], calculate() { return 0; } };
+const COMP_EXT_WINDOWS = { id: 'ext-windows', name: 'Windows & Doors', name_zh: '窗户与门',   icon: '🪟', tagline: 'Replacement & new installation', tagline_zh: '更换与新安装',           comingSoon: true, fields: [], calculate() { return 0; } };
