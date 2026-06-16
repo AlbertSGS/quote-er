@@ -106,7 +106,7 @@ function buildDocDef(logoSvg) {
 
   const content = [];
 
-  content.push({ text: isZh ? '工程报价单' : 'Exterior Work Quotation', fontSize: 18, bold: true, alignment: 'center', margin: [0, 0, 0, 6] });
+  content.push({ text: isZh ? '工程报价单' : 'Quotation', fontSize: 18, bold: true, alignment: 'center', margin: [0, 0, 0, 6] });
   content.push({ text: `${isZh ? '日期' : 'Date'}: ${today}`, fontSize: 10, bold: true, alignment: 'center', margin: [0, 0, 0, 18] });
 
   if (ordered.length === 0) {

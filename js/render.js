@@ -183,7 +183,7 @@ function renderProfileSection() {
       </div>
       <div class="profile-subsection-title">Company</div>
       <div class="config-fields">
-        ${profileField('companyName',   'Company Name',    p.companyName,   'e.g. BBN Renovations Ltd.')}
+        ${profileField('companyName',   'Company Name',    p.companyName,   'e.g. Company Ltd.')}
         ${profileField('companyEmail',  'Company Email',   p.companyEmail,  'e.g. info@company.com')}
         ${profileField('contactName',   'Contact Name',    p.contactName,   'e.g. Jane Doe')}
         ${profileField('contactPhone',  'Contact Phone',   p.contactPhone,  'e.g. (604) 555-0100')}

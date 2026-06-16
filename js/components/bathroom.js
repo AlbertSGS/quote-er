@@ -135,7 +135,7 @@ function refreshBathTotals(bathId) {
   const bath = state.bathrooms.find(b => b.id === bathId);
   if (!bath) return;
   const formulaEl = document.getElementById(`bath-labour-formula-${bathId}`);
-  if (formulaEl) formulaEl.textContent = `${bath.labour.workers || '0'} × $${bath.labour.pricePerDay || '0'} × ${bath.labour.days || '0'} days`;
+  if (formulaEl) formulaEl.textContent = `${bath.labour.workers || '0'} × $${bath.labour.pricePerDay || '300'} × ${bath.labour.days || '0'} days`;
   const ltEl = document.getElementById(`bath-labour-total-${bathId}`);
   if (ltEl) ltEl.textContent = fmt(calcLabourTotal(bath));
   bath.items.forEach(bi => {
