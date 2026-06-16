@@ -14,8 +14,6 @@ const UI = {
     estimateSummary:    'Estimate Summary',
     emptyPrompt:        'Select components on the left to begin your estimate.',
     componentEstimate:  'Component estimate:',
-    materialsLabour:    'Materials & Labour',
-    overhead:           'Overhead & Contingency (15%)',
     estimatedTotal:     'Estimated Total',
     disclaimer:         'Prices are estimates only. Actual costs vary by site conditions, local labour rates, and material availability. Consult a contractor for a firm quote.',
     // Bathroom UI
@@ -51,8 +49,6 @@ const UI = {
     estimateSummary:    '报价摘要',
     emptyPrompt:        '请在左侧选择项目以开始估价。',
     componentEstimate:  '项目估算：',
-    materialsLabour:    '材料与人工',
-    overhead:           '管理费及预备费 (15%)',
     estimatedTotal:     '预估总价',
     disclaimer:         '以上价格仅供参考，实际费用因现场条件、当地人工费率及材料供应情况而异。如需准确报价，请咨询承包商。',
     // Bathroom UI

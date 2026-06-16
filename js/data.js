@@ -11,6 +11,7 @@ const COMPONENTS = {
     COMP_KITCHEN,
     COMP_DRYWALL,
     COMP_TRIM,
+    COMP_GARBAGE_DISPOSAL,
   ],
   exterior: [
     COMP_EXT_PAINT,

@@ -118,10 +118,8 @@ function renderSummary() {
     container.innerHTML = `<p class="summary-empty-msg">${s('emptyPrompt')}</p>`;
     return;
   }
-  const lines       = ordered.map(comp => ({ comp, amount: calcComponent(comp) }));
-  const subtotal    = lines.reduce((sum, l) => sum + l.amount, 0);
-  const contingency = Math.round(subtotal * 0.15);
-  const total       = subtotal + contingency;
+  const lines    = ordered.map(comp => ({ comp, amount: calcComponent(comp) }));
+  const total    = lines.reduce((sum, l) => sum + l.amount, 0);
 
   container.innerHTML = `
     <div class="summary-items">
@@ -138,8 +136,6 @@ function renderSummary() {
         </div>`).join('')}
     </div>
     <div class="summary-totals">
-      <div class="total-row"><span>${s('materialsLabour')}</span><span>${fmt(subtotal)}</span></div>
-      <div class="total-row"><span>${s('overhead')}</span><span>${fmt(contingency)}</span></div>
       <div class="total-row grand">
         <span>${s('estimatedTotal')}</span>
         <span class="grand-amount">${fmt(total)}</span>

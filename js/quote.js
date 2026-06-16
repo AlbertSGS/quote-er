@@ -46,10 +46,8 @@ function buildDocDef(logoSvg) {
   const today  = new Date().toLocaleDateString('en-CA');
   const p      = state.profile;
 
-  const ordered  = state.selected.map(id => getComponent(id)).filter(Boolean);
-  const subtotal = ordered.reduce((sum, comp) => sum + calcComponent(comp), 0);
-  const overhead = Math.round(subtotal * 0.15);
-  const total    = subtotal + overhead;
+  const ordered = state.selected.map(id => getComponent(id)).filter(Boolean);
+  const total   = ordered.reduce((sum, comp) => sum + calcComponent(comp), 0);
 
   const logoEl = logoSvg
     ? { image: logoSvg, width: 260, alignment: 'center' }
