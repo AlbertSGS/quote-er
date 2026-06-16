@@ -49,7 +49,7 @@ function buildDocDef(logoSvg) {
   const total    = subtotal + overhead;
 
   const logoEl = logoSvg
-    ? { image: logoSvg, width: 130, alignment: 'center' }
+    ? { image: logoSvg, width: 520, alignment: 'center' }
     : { text: '', margin: [0, 0, 0, 0] };
 
   const pageHeader = () => ({
