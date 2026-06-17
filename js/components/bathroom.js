@@ -139,9 +139,6 @@ function refreshBathTotals(instanceId) {
     if (el) el.textContent = fmt((parseFloat(bi.qty) || 0) * price);
   });
 
-  const btEl = document.getElementById(`bath-total-${instanceId}`);
-  if (btEl) btEl.textContent = fmt(calcOneBathroom(bathData));
-
   const estimate = calcOneBathroom(bathData);
   const subEl = document.getElementById(`subtotal-${instanceId}`);
   if (subEl) subEl.innerHTML = `${s('componentEstimate')} <strong>${fmt(estimate)}</strong>`;
@@ -249,11 +246,6 @@ function renderBathroomCard(instance) {
             ${addOpts}
           </select>
         </div>
-      </div>
-
-      <div class="bath-total">
-        <span>${s('bathroomTotal')}</span>
-        <strong id="bath-total-${instance.instanceId}">${fmt(calcOneBathroom(bathData))}</strong>
       </div>
 
       <div class="config-subtotal" id="subtotal-${instance.instanceId}">
