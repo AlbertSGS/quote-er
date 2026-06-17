@@ -46,8 +46,14 @@ function buildDocDef(logoSvg) {
   const today  = new Date().toLocaleDateString('en-CA');
   const p      = state.profile;
 
-  const ordered = state.selected.map(id => getComponent(id)).filter(Boolean);
-  const total   = ordered.reduce((sum, comp) => sum + getFinalPrice(comp), 0);
+  const total = state.instances.reduce((sum, inst) => sum + getFinalPrice(inst), 0);
+
+  // Pre-compute per-compId counts for singular/plural naming
+  const compCounts = {};
+  state.instances.forEach(inst => {
+    compCounts[inst.compId] = (compCounts[inst.compId] || 0) + 1;
+  });
+  const compIndexes = {};
 
   const logoEl = logoSvg
     ? { image: logoSvg, width: 260, alignment: 'center' }
@@ -109,12 +115,17 @@ function buildDocDef(logoSvg) {
   content.push({ text: isZh ? '工程报价单' : 'Quotation', fontSize: 18, bold: true, alignment: 'center', margin: [0, 0, 0, 6] });
   content.push({ text: `${isZh ? '日期' : 'Date'}: ${today}`, fontSize: 10, bold: true, alignment: 'center', margin: [0, 0, 0, 18] });
 
-  if (ordered.length === 0) {
+  if (state.instances.length === 0) {
     content.push({ text: isZh ? '暂无项目' : 'No items selected', fontSize: 9, color: '#AAA', italics: true, margin: [0, 0, 0, 14] });
   } else {
     const allRows = [];
-    ordered.forEach(comp => {
-      const rows = buildSectionRows(comp, isZh);
+    state.instances.forEach(inst => {
+      const comp = getComponent(inst.compId);
+      if (!comp) return;
+      compIndexes[inst.compId] = (compIndexes[inst.compId] || 0) + 1;
+      const idx     = compIndexes[inst.compId];
+      const showNum = compCounts[inst.compId] > 1;
+      const rows = buildSectionRows(inst, isZh, showNum, idx);
       allRows.push(...rows);
     });
     content.push({ table: { widths: [100, '*', 72], body: [tableHeaderRow, ...allRows] }, layout: tableLayout, margin: [0, 0, 0, 16] });
@@ -150,47 +161,48 @@ function buildDocDef(logoSvg) {
   };
 }
 
-function buildSectionRows(comp, isZh) {
+function buildSectionRows(instance, isZh, showNum, idx) {
+  const comp   = getComponent(instance.compId);
   const noDesc = { text: '—', fontSize: 9, color: '#AAA', italics: true };
 
   if (comp.customType === 'bathroom') {
-    const n = state.bathrooms.length;
-    if (n === 0) return [[{ text: '—', colSpan: 3, fontSize: 9, color: '#AAA' }, {}, {}]];
-    const itemName = n === 1
-      ? (isZh ? '浴室装修' : 'Bathroom Renovation')
-      : (isZh ? `浴室装修 (${n} 间)` : `Bathroom Renovation (${n})`);
-    const allItems = [];
-    state.bathrooms.forEach(bath => {
-      bath.items.forEach(bi => {
-        const def = BATHROOM_ITEMS.find(d => d.id === bi.itemId);
-        if (!def) return;
-        const qty = parseFloat(bi.qty);
-        allItems.push(t(def, 'label') + (qty && qty !== 1 ? ` ×${qty}` : ''));
-      });
-    });
+    const bathData = instance.bathData || {};
+    const items    = bathData.items || [];
+    const baseName = isZh ? '浴室装修' : 'Bathroom Renovation';
+    const itemName = showNum ? `${baseName} ${idx}` : baseName;
+    const allItems = items.map(bi => {
+      const def = BATHROOM_ITEMS.find(d => d.id === bi.itemId);
+      if (!def) return null;
+      const qty = parseFloat(bi.qty);
+      return t(def, 'label') + (qty && qty !== 1 ? ` ×${qty}` : '');
+    }).filter(Boolean);
     const descStack = allItems.length
       ? { stack: allItems.map(l => ({ text: l, fontSize: 9 })) }
       : noDesc;
     return [[
       { text: itemName, fontSize: 9 },
       descStack,
-      { text: fmt(getFinalPrice(comp)), fontSize: 9, bold: true, alignment: 'right' }
+      { text: fmt(getFinalPrice(instance)), fontSize: 9, bold: true, alignment: 'right' }
     ]];
   }
 
-  const details = describeCompForQuote(comp);
+  const baseName = t(comp, 'name');
+  const itemName = showNum ? `${baseName} ${idx}` : baseName;
+  const details  = describeCompForQuote(instance);
   const descStack = details.length
     ? { stack: details.map(l => ({ text: l, fontSize: 9 })) }
     : noDesc;
   return [[
-    { text: t(comp, 'name'), fontSize: 9 },
+    { text: itemName, fontSize: 9 },
     descStack,
-    { text: fmt(getFinalPrice(comp)), fontSize: 9, bold: true, alignment: 'right' }
+    { text: fmt(getFinalPrice(instance)), fontSize: 9, bold: true, alignment: 'right' }
   ]];
 }
 
-function describeCompForQuote(comp) {
-  const vals  = getValues(comp.id);
+function describeCompForQuote(instance) {
+  const comp = getComponent(instance.compId);
+  if (!comp) return [];
+  const vals  = instance.values || {};
   const lines = [];
   comp.fields.forEach(f => {
     const val = vals[f.id];

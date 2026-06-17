@@ -1,62 +1,61 @@
 // ---- Actions ----
 
-function toggleComponent(id) {
-  const comp = getComponent(id);
+function addInstance(compId) {
+  const comp = getComponent(compId);
   if (!comp || comp.comingSoon) return;
-  const idx = state.selected.indexOf(id);
-  if (idx === -1) {
-    state.selected.push(id);
-    if (comp.customType === 'bathroom' && state.bathrooms.length === 0) {
-      state.bathrooms.push(createEmptyBathroom(1));
-    }
-    if (!state.values[id]) state.values[id] = initValues(comp);
-  } else {
-    state.selected.splice(idx, 1);
-    if (comp.customType === 'bathroom') state.bathrooms = [];
+  const instanceId = genId();
+  const inst = { instanceId, compId, values: initValues(comp) };
+  if (comp.customType === 'bathroom') {
+    inst.bathData = createEmptyBathData();
   }
+  state.instances.push(inst);
   render();
 }
 
-function updateValue(compId, fieldId, value) {
-  if (!state.values[compId]) state.values[compId] = {};
-  state.values[compId][fieldId] = value;
-  updateSubtotal(compId);
+function removeInstance(instanceId) {
+  state.instances = state.instances.filter(i => i.instanceId !== instanceId);
+  delete state.finalPrices[instanceId];
+  render();
+}
+
+function updateValue(instanceId, fieldId, value) {
+  const inst = getInstance(instanceId);
+  if (!inst) return;
+  if (!inst.values) inst.values = {};
+  inst.values[fieldId] = value;
+  updateSubtotal(instanceId);
   renderSummary();
 }
 
 function switchCategory(cat) {
   if (state.category === cat) return;
   state.category    = cat;
-  state.selected    = [];
-  state.values      = {};
-  state.bathrooms   = [];
+  state.instances   = [];
   state.finalPrices = {};
   render();
 }
 
 function resetAll() {
-  state.selected    = [];
-  state.values      = {};
-  state.bathrooms   = [];
+  state.instances   = [];
   state.finalPrices = {};
   render();
 }
 
-function updateFinalPrice(compId, value) {
-  state.finalPrices[compId] = value === '' ? null : value;
-  const row = document.getElementById(`finalprice-row-${compId}`);
+function updateFinalPrice(instanceId, value) {
+  state.finalPrices[instanceId] = value === '' ? null : value;
+  const row = document.getElementById(`finalprice-row-${instanceId}`);
   if (row) row.classList.toggle('has-override', value !== '');
   renderSummary();
 }
 
-function resetFinalPrice(compId) {
-  state.finalPrices[compId] = null;
-  const row = document.getElementById(`finalprice-row-${compId}`);
+function resetFinalPrice(instanceId) {
+  state.finalPrices[instanceId] = null;
+  const row = document.getElementById(`finalprice-row-${instanceId}`);
   if (row) row.classList.remove('has-override');
-  const comp = getComponent(compId);
-  if (!comp) return;
-  const fpInput = document.getElementById(`finalprice-input-${compId}`);
-  if (fpInput) fpInput.value = Math.round(calcComponent(comp) * 1.35);
+  const inst = getInstance(instanceId);
+  if (!inst) return;
+  const fpInput = document.getElementById(`finalprice-input-${instanceId}`);
+  if (fpInput) fpInput.value = Math.round(calcInstance(inst) * 1.35);
   renderSummary();
 }
 

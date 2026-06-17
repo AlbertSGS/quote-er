@@ -38,11 +38,15 @@ function renderTabBar() {
 function renderGrid() {
   const grid = document.getElementById('component-grid');
   grid.innerHTML = getComponents().map(comp => {
-    const sel = state.selected.includes(comp.id);
+    const count = getInstancesOf(comp.id).length;
+    const active = count > 0;
+    let badge = '';
+    if (count === 1) badge = '✓';
+    else if (count > 1) badge = String(count);
     return `
-      <div class="comp-card ${sel ? 'selected' : ''} ${comp.comingSoon ? 'coming-soon' : ''}"
-           onclick="toggleComponent('${comp.id}')">
-        <div class="comp-check">${sel ? '✓' : ''}</div>
+      <div class="comp-card ${active ? 'selected' : ''} ${comp.comingSoon ? 'coming-soon' : ''}"
+           onclick="${comp.comingSoon ? '' : `addInstance('${comp.id}')`}">
+        <div class="comp-check">${badge}</div>
         <div class="comp-icon">${comp.icon}</div>
         <div class="comp-name">${t(comp, 'name')}</div>
         <div class="comp-tagline">${t(comp, 'tagline')}</div>
@@ -54,67 +58,74 @@ function renderGrid() {
 function renderConfigs() {
   const section   = document.getElementById('config-section');
   const container = document.getElementById('config-cards');
-  const ordered   = state.selected.map(id => getComponent(id)).filter(Boolean);
-  if (ordered.length === 0) { section.style.display = 'none'; return; }
+  if (state.instances.length === 0) { section.style.display = 'none'; return; }
   section.style.display = '';
-  container.innerHTML = ordered.map(renderConfigCard).join('');
+  container.innerHTML = state.instances.map(renderConfigCard).join('');
 }
 
-function renderFinalPriceRow(compId, estimate) {
-  const hasOverride = state.finalPrices[compId] != null;
+function renderFinalPriceRow(instanceId, estimate) {
+  const hasOverride = state.finalPrices[instanceId] != null;
   const value = hasOverride
-    ? (parseFloat(state.finalPrices[compId]) || 0)
+    ? (parseFloat(state.finalPrices[instanceId]) || 0)
     : Math.round(estimate * 1.35);
   return `
-    <div class="final-price-row${hasOverride ? ' has-override' : ''}" id="finalprice-row-${compId}">
+    <div class="final-price-row${hasOverride ? ' has-override' : ''}" id="finalprice-row-${instanceId}">
       <div class="final-price-left">
         <span class="final-price-label">Final Price</span>
         <span class="final-price-auto-hint">auto · 35% margin</span>
       </div>
       <div class="final-price-right">
         <span class="final-price-prefix">$</span>
-        <input type="number" class="final-price-input" id="finalprice-input-${compId}"
+        <input type="number" class="final-price-input" id="finalprice-input-${instanceId}"
                min="0" step="1" value="${Math.round(value)}"
-               oninput="updateFinalPrice('${compId}', this.value)" />
-        <button class="final-price-reset" onclick="resetFinalPrice('${compId}')" title="Reset to auto (1.35× estimate)">↺</button>
+               oninput="updateFinalPrice('${instanceId}', this.value)" />
+        <button class="final-price-reset" onclick="resetFinalPrice('${instanceId}')" title="Reset to auto (1.35× estimate)">↺</button>
       </div>
     </div>`;
 }
 
-function renderConfigCard(comp) {
-  if (comp.customType === 'bathroom') return renderBathroomManager();
-  const vals     = getValues(comp.id);
-  const estimate = calcComponent(comp);
+function renderConfigCard(instance) {
+  const comp = getComponent(instance.compId);
+  if (!comp) return '';
+  if (comp.customType === 'bathroom') return renderBathroomCard(instance);
+
+  const vals        = instance.values || {};
+  const estimate    = calcInstance(instance);
+  const siblings    = getInstancesOf(instance.compId);
+  const idx         = siblings.findIndex(i => i.instanceId === instance.instanceId);
+  const showNum     = siblings.length > 1;
+  const title       = showNum ? `${t(comp, 'name')} ${idx + 1}` : t(comp, 'name');
+
   return `
-    <div class="config-card" id="config-${comp.id}">
+    <div class="config-card" id="config-${instance.instanceId}">
       <div class="config-header">
         <span class="config-icon">${comp.icon}</span>
-        <h3>${t(comp, 'name')}</h3>
-        <button class="config-remove" onclick="toggleComponent('${comp.id}')">${s('removeBtn')}</button>
+        <h3>${title}</h3>
+        <button class="config-remove" onclick="removeInstance('${instance.instanceId}')">${s('removeBtn')}</button>
       </div>
       <div class="config-fields">
-        ${comp.fields.map(f => renderField(comp.id, f, vals)).join('')}
+        ${comp.fields.map(f => renderField(instance.instanceId, f, vals)).join('')}
       </div>
-      <div class="config-subtotal" id="subtotal-${comp.id}">
+      <div class="config-subtotal" id="subtotal-${instance.instanceId}">
         ${s('componentEstimate')} <strong>${fmt(estimate)}</strong>
       </div>
-      ${renderFinalPriceRow(comp.id, estimate)}
+      ${renderFinalPriceRow(instance.instanceId, estimate)}
     </div>`;
 }
 
-function renderField(compId, field, vals) {
+function renderField(instanceId, field, vals) {
   const val = vals[field.id] !== undefined ? vals[field.id]
     : (field.type === 'select' ? field.options[0].value : '');
   let inputHtml = '';
   if (field.type === 'number') {
     inputHtml = `<input type="number" min="${field.min ?? 0}" step="any"
       placeholder="${field.placeholder || '0'}" value="${val}"
-      oninput="updateValue('${compId}', '${field.id}', this.value)" />`;
+      oninput="updateValue('${instanceId}', '${field.id}', this.value)" />`;
   } else if (field.type === 'select') {
     const opts = field.options.map(o =>
       `<option value="${o.value}" ${val === o.value ? 'selected' : ''}>${t(o, 'label')}${o.priceLabel ? ' — ' + o.priceLabel : ''}</option>`
     ).join('');
-    inputHtml = `<select onchange="updateValue('${compId}', '${field.id}', this.value)">${opts}</select>`;
+    inputHtml = `<select onchange="updateValue('${instanceId}', '${field.id}', this.value)">${opts}</select>`;
   }
   const hint = t(field, 'hint');
   return `
@@ -125,14 +136,14 @@ function renderField(compId, field, vals) {
     </div>`;
 }
 
-function updateSubtotal(compId) {
-  const el   = document.getElementById(`subtotal-${compId}`);
-  const comp = getComponent(compId);
-  if (!el || !comp) return;
-  const estimate = calcComponent(comp);
+function updateSubtotal(instanceId) {
+  const el   = document.getElementById(`subtotal-${instanceId}`);
+  const inst = getInstance(instanceId);
+  if (!el || !inst) return;
+  const estimate = calcInstance(inst);
   el.innerHTML = `${s('componentEstimate')} <strong>${fmt(estimate)}</strong>`;
-  if (!state.finalPrices[compId]) {
-    const fpInput = document.getElementById(`finalprice-input-${compId}`);
+  if (!state.finalPrices[instanceId]) {
+    const fpInput = document.getElementById(`finalprice-input-${instanceId}`);
     if (fpInput) fpInput.value = Math.round(estimate * 1.35);
   }
 }
@@ -142,23 +153,40 @@ function updateSubtotal(compId) {
 function renderSummary() {
   saveState();
   const container = document.getElementById('summary-content');
-  const ordered   = state.selected.map(id => getComponent(id)).filter(Boolean);
-  if (ordered.length === 0) {
+  if (state.instances.length === 0) {
     container.innerHTML = `<p class="summary-empty-msg">${s('emptyPrompt')}</p>`;
     return;
   }
-  const lines    = ordered.map(comp => ({ comp, amount: getFinalPrice(comp) }));
-  const total    = lines.reduce((sum, l) => sum + l.amount, 0);
+
+  // Pre-compute per-compId counts and running indexes for numbering
+  const compCounts = {};
+  state.instances.forEach(inst => {
+    compCounts[inst.compId] = (compCounts[inst.compId] || 0) + 1;
+  });
+  const compIndexes = {};
+
+  const lines = state.instances.map(inst => {
+    const comp = getComponent(inst.compId);
+    if (!comp) return null;
+    compIndexes[inst.compId] = (compIndexes[inst.compId] || 0) + 1;
+    const showNum    = compCounts[inst.compId] > 1;
+    const displayName = showNum
+      ? `${t(comp, 'name')} ${compIndexes[inst.compId]}`
+      : t(comp, 'name');
+    return { inst, comp, displayName, amount: getFinalPrice(inst) };
+  }).filter(Boolean);
+
+  const total = lines.reduce((sum, l) => sum + l.amount, 0);
 
   container.innerHTML = `
     <div class="summary-items">
-      ${lines.map(({ comp, amount }) => `
+      ${lines.map(({ inst, comp, displayName, amount }) => `
         <div class="summary-line">
           <div class="summary-line-left">
             <span class="summary-line-icon">${comp.icon}</span>
             <div>
-              <div class="summary-line-name">${t(comp, 'name')}</div>
-              <div class="summary-line-detail">${getSummaryDetail(comp)}</div>
+              <div class="summary-line-name">${displayName}</div>
+              <div class="summary-line-detail">${getSummaryDetail(inst)}</div>
             </div>
           </div>
           <div class="summary-line-amount ${amount === 0 ? 'zero' : ''}">${fmt(amount)}</div>
@@ -231,13 +259,14 @@ function profileField(field, label, value, placeholder) {
     </div>`;
 }
 
-function getSummaryDetail(comp) {
+function getSummaryDetail(instance) {
+  const comp = getComponent(instance.compId);
+  if (!comp) return '—';
   if (comp.customType === 'bathroom') {
-    const n     = state.bathrooms.length;
-    const items = state.bathrooms.reduce((sum, b) => sum + b.items.length, 0);
-    return s('bathroomSummary')(n, items);
+    const items = (instance.bathData?.items || []).length;
+    return `${items} line item${items !== 1 ? 's' : ''}`;
   }
-  const vals  = getValues(comp.id);
+  const vals  = instance.values || {};
   const parts = [];
   comp.fields.forEach(f => {
     const val = vals[f.id];

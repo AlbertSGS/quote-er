@@ -73,126 +73,108 @@ const COMP_BATHROOM = {
   calculate() { return 0; }
 };
 
-// ---- Bathroom helpers ----
+// ---- Bathroom data factory ----
 
-function createEmptyBathroom(num) {
+function createEmptyBathData() {
   return {
-    id: 'bath-' + Date.now() + '-' + num,
-    label: num,
     labour: { workers: '', pricePerDay: '', days: '' },
     items: []
   };
 }
 
-// ---- Bathroom actions ----
+// ---- Bathroom actions (all keyed by instanceId) ----
 
-function addBathroom() {
-  state.bathrooms.push(createEmptyBathroom(state.bathrooms.length + 1));
-  rerenderBathroomManager();
-}
-
-function removeBathroom(bathId) {
-  state.bathrooms = state.bathrooms.filter(b => b.id !== bathId);
-  rerenderBathroomManager();
-}
-
-function updateBathLabour(bathId, field, value) {
-  const bath = state.bathrooms.find(b => b.id === bathId);
-  if (!bath) return;
-  bath.labour[field] = value;
-  refreshBathTotals(bathId);
+function updateBathLabour(instanceId, field, value) {
+  const inst = getInstance(instanceId);
+  if (!inst || !inst.bathData) return;
+  inst.bathData.labour[field] = value;
+  refreshBathTotals(instanceId);
   renderSummary();
 }
 
-function addBathItem(bathId, itemId) {
+function addBathItem(instanceId, itemId) {
   if (!itemId) return;
-  const bath = state.bathrooms.find(b => b.id === bathId);
-  if (!bath || bath.items.some(i => i.itemId === itemId)) return;
+  const inst = getInstance(instanceId);
+  if (!inst || !inst.bathData) return;
+  if (inst.bathData.items.some(i => i.itemId === itemId)) return;
   const def = BATHROOM_ITEMS.find(i => i.id === itemId);
   if (!def) return;
-  bath.items.push({ itemId, qty: '1', unitPrice: String(def.defaultPrice) });
-  rerenderBathroomManager();
+  inst.bathData.items.push({ itemId, qty: '1', unitPrice: String(def.defaultPrice) });
+  rerenderBathroomCard(instanceId);
 }
 
-function removeBathItem(bathId, itemId) {
-  const bath = state.bathrooms.find(b => b.id === bathId);
-  if (!bath) return;
-  bath.items = bath.items.filter(i => i.itemId !== itemId);
-  rerenderBathroomManager();
+function removeBathItem(instanceId, itemId) {
+  const inst = getInstance(instanceId);
+  if (!inst || !inst.bathData) return;
+  inst.bathData.items = inst.bathData.items.filter(i => i.itemId !== itemId);
+  rerenderBathroomCard(instanceId);
 }
 
-function updateBathItem(bathId, itemId, field, value) {
-  const bath = state.bathrooms.find(b => b.id === bathId);
-  if (!bath) return;
-  const item = bath.items.find(i => i.itemId === itemId);
+function updateBathItem(instanceId, itemId, field, value) {
+  const inst = getInstance(instanceId);
+  if (!inst || !inst.bathData) return;
+  const item = inst.bathData.items.find(i => i.itemId === itemId);
   if (!item) return;
   item[field] = value;
-  refreshBathTotals(bathId);
+  refreshBathTotals(instanceId);
   renderSummary();
 }
 
-function refreshBathTotals(bathId) {
-  const bath = state.bathrooms.find(b => b.id === bathId);
-  if (!bath) return;
-  const formulaEl = document.getElementById(`bath-labour-formula-${bathId}`);
-  if (formulaEl) formulaEl.textContent = `${bath.labour.workers || '0'} × $${bath.labour.pricePerDay || '300'} × ${bath.labour.days || '0'} days`;
-  const ltEl = document.getElementById(`bath-labour-total-${bathId}`);
-  if (ltEl) ltEl.textContent = fmt(calcLabourTotal(bath));
-  bath.items.forEach(bi => {
-    const el    = document.getElementById(`bath-item-total-${bathId}-${bi.itemId}`);
+function refreshBathTotals(instanceId) {
+  const inst = getInstance(instanceId);
+  if (!inst || !inst.bathData) return;
+  const bathData = inst.bathData;
+
+  const formulaEl = document.getElementById(`bath-labour-formula-${instanceId}`);
+  if (formulaEl) {
+    formulaEl.textContent = `${bathData.labour.workers || '0'} × $${bathData.labour.pricePerDay || '0'} × ${bathData.labour.days || '0'} days`;
+  }
+  const ltEl = document.getElementById(`bath-labour-total-${instanceId}`);
+  if (ltEl) ltEl.textContent = fmt(calcLabourTotal(bathData));
+
+  bathData.items.forEach(bi => {
+    const el    = document.getElementById(`bath-item-total-${instanceId}-${bi.itemId}`);
     const def   = BATHROOM_ITEMS.find(i => i.id === bi.itemId);
     const price = parseFloat(bi.unitPrice) || (def ? def.defaultPrice : 0);
     if (el) el.textContent = fmt((parseFloat(bi.qty) || 0) * price);
   });
-  const btEl = document.getElementById(`bath-total-${bathId}`);
-  if (btEl) btEl.textContent = fmt(calcOneBathroom(bath));
-  const allTotal = calcAllBathrooms();
-  const subEl = document.getElementById('subtotal-bathroom');
-  if (subEl) subEl.innerHTML = `${s('componentEstimate')} <strong>${fmt(allTotal)}</strong>`;
-  if (!state.finalPrices['bathroom']) {
-    const fpInput = document.getElementById('finalprice-input-bathroom');
-    if (fpInput) fpInput.value = Math.round(allTotal * 1.35);
+
+  const btEl = document.getElementById(`bath-total-${instanceId}`);
+  if (btEl) btEl.textContent = fmt(calcOneBathroom(bathData));
+
+  const estimate = calcOneBathroom(bathData);
+  const subEl = document.getElementById(`subtotal-${instanceId}`);
+  if (subEl) subEl.innerHTML = `${s('componentEstimate')} <strong>${fmt(estimate)}</strong>`;
+  if (!state.finalPrices[instanceId]) {
+    const fpInput = document.getElementById(`finalprice-input-${instanceId}`);
+    if (fpInput) fpInput.value = Math.round(estimate * 1.35);
   }
 }
 
-function rerenderBathroomManager() {
-  const el = document.getElementById('config-bathroom');
-  if (el) el.outerHTML = renderBathroomManager();
+function rerenderBathroomCard(instanceId) {
+  const el   = document.getElementById(`config-${instanceId}`);
+  const inst = getInstance(instanceId);
+  if (el && inst) el.outerHTML = renderBathroomCard(inst);
   renderSummary();
 }
 
 // ---- Bathroom render ----
 
-function renderBathroomManager() {
-  const estimate = calcAllBathrooms();
-  return `
-    <div class="config-card" id="config-bathroom">
-      <div class="config-header">
-        <span class="config-icon">🚿</span>
-        <h3>${s('bathroomCount')(state.bathrooms.length)}</h3>
-        <button class="config-remove" onclick="toggleComponent('bathroom')">${s('removeBtn')}</button>
-      </div>
-      <div class="bathroom-list">
-        ${state.bathrooms.map(renderOneBathroom).join('')}
-      </div>
-      <div class="bathroom-add-row">
-        <button class="btn-add-bathroom" onclick="addBathroom()">${s('addBathroom')}</button>
-      </div>
-      <div class="config-subtotal" id="subtotal-bathroom">
-        ${s('componentEstimate')} <strong>${fmt(estimate)}</strong>
-      </div>
-      ${renderFinalPriceRow('bathroom', estimate)}
-    </div>`;
-}
+function renderBathroomCard(instance) {
+  const bathData    = instance.bathData || { labour: {}, items: [] };
+  const estimate    = calcOneBathroom(bathData);
+  const labourTotal = calcLabourTotal(bathData);
+  const siblings    = getInstancesOf(instance.compId);
+  const idx         = siblings.findIndex(i => i.instanceId === instance.instanceId);
+  const showNum     = siblings.length > 1;
+  const title       = showNum
+    ? `${t(COMP_BATHROOM, 'name')} ${idx + 1}`
+    : t(COMP_BATHROOM, 'name');
 
-function renderOneBathroom(bath) {
-  const labourTotal = calcLabourTotal(bath);
-  const bathTotal   = calcOneBathroom(bath);
-  const addedIds    = bath.items.map(i => i.itemId);
-  const available   = BATHROOM_ITEMS.filter(i => !addedIds.includes(i.id));
-  const bathLabel   = `${s('bathrooms').replace('s','').trim()} ${bath.label}`;
+  const addedIds  = bathData.items.map(i => i.itemId);
+  const available = BATHROOM_ITEMS.filter(i => !addedIds.includes(i.id));
 
-  const itemsHTML = bath.items.length > 0 ? `
+  const itemsHTML = bathData.items.length > 0 ? `
     <div class="items-table">
       <div class="items-header">
         <span>${s('colItem')}</span>
@@ -201,7 +183,7 @@ function renderOneBathroom(bath) {
         <span>${s('colTotal')}</span>
         <span></span>
       </div>
-      ${bath.items.map(bi => {
+      ${bathData.items.map(bi => {
         const def   = BATHROOM_ITEMS.find(i => i.id === bi.itemId);
         if (!def) return '';
         const price = parseFloat(bi.unitPrice) || def.defaultPrice;
@@ -211,12 +193,12 @@ function renderOneBathroom(bath) {
             <span class="item-name">${t(def, 'label')} <span class="item-unit">(${def.unit})</span></span>
             <input class="item-input" type="number" min="0" step="any"
               value="${bi.qty}" placeholder="1"
-              oninput="updateBathItem('${bath.id}', '${bi.itemId}', 'qty', this.value)" />
+              oninput="updateBathItem('${instance.instanceId}', '${bi.itemId}', 'qty', this.value)" />
             <input class="item-input" type="number" min="0" step="any"
               value="${bi.unitPrice}" placeholder="${def.defaultPrice}"
-              oninput="updateBathItem('${bath.id}', '${bi.itemId}', 'unitPrice', this.value)" />
-            <span class="item-total" id="bath-item-total-${bath.id}-${bi.itemId}">${fmt(total)}</span>
-            <button class="item-remove" onclick="removeBathItem('${bath.id}', '${bi.itemId}')">✕</button>
+              oninput="updateBathItem('${instance.instanceId}', '${bi.itemId}', 'unitPrice', this.value)" />
+            <span class="item-total" id="bath-item-total-${instance.instanceId}-${bi.itemId}">${fmt(total)}</span>
+            <button class="item-remove" onclick="removeBathItem('${instance.instanceId}', '${bi.itemId}')">✕</button>
           </div>`;
       }).join('')}
     </div>` : `<p class="bath-no-items">${s('noItemsYet')}</p>`;
@@ -226,11 +208,11 @@ function renderOneBathroom(bath) {
     : `<option value="">${s('allItemsAdded')}</option>`;
 
   return `
-    <div class="bath-card">
-      <div class="bath-card-header">
-        <span>🚿 ${bathLabel}</span>
-        ${state.bathrooms.length > 1
-          ? `<button class="bath-remove" onclick="removeBathroom('${bath.id}')">${s('removeBtn')}</button>` : ''}
+    <div class="config-card" id="config-${instance.instanceId}">
+      <div class="config-header">
+        <span class="config-icon">🚿</span>
+        <h3>${title}</h3>
+        <button class="config-remove" onclick="removeInstance('${instance.instanceId}')">${s('removeBtn')}</button>
       </div>
 
       <div class="bath-section">
@@ -238,24 +220,24 @@ function renderOneBathroom(bath) {
         <div class="labour-grid">
           <div class="labour-field">
             <label>${s('numWorkers')}</label>
-            <input type="number" min="0" step="1" placeholder="0" value="${bath.labour.workers}"
-              oninput="updateBathLabour('${bath.id}', 'workers', this.value)" />
+            <input type="number" min="0" step="1" placeholder="0" value="${bathData.labour.workers}"
+              oninput="updateBathLabour('${instance.instanceId}', 'workers', this.value)" />
           </div>
           <div class="labour-field">
             <label>${s('ratePerDay')}</label>
-            <input type="number" min="0" step="any" placeholder="0" value="${bath.labour.pricePerDay}"
-              oninput="updateBathLabour('${bath.id}', 'pricePerDay', this.value)" />
+            <input type="number" min="0" step="any" placeholder="0" value="${bathData.labour.pricePerDay}"
+              oninput="updateBathLabour('${instance.instanceId}', 'pricePerDay', this.value)" />
           </div>
           <div class="labour-field">
             <label>${s('numDays')}</label>
-            <input type="number" min="0" step="any" placeholder="0" value="${bath.labour.days}"
-              oninput="updateBathLabour('${bath.id}', 'days', this.value)" />
+            <input type="number" min="0" step="any" placeholder="0" value="${bathData.labour.days}"
+              oninput="updateBathLabour('${instance.instanceId}', 'days', this.value)" />
           </div>
         </div>
         <div class="labour-formula">
-          <span id="bath-labour-formula-${bath.id}">${bath.labour.workers || '0'} × $${bath.labour.pricePerDay || '0'} × ${bath.labour.days || '0'} days</span>
+          <span id="bath-labour-formula-${instance.instanceId}">${bathData.labour.workers || '0'} × $${bathData.labour.pricePerDay || '0'} × ${bathData.labour.days || '0'} days</span>
           <span>=</span>
-          <strong id="bath-labour-total-${bath.id}">${fmt(labourTotal)}</strong>
+          <strong id="bath-labour-total-${instance.instanceId}">${fmt(labourTotal)}</strong>
         </div>
       </div>
 
@@ -263,7 +245,7 @@ function renderOneBathroom(bath) {
         <div class="bath-section-title">${s('materialsFixtures')}</div>
         ${itemsHTML}
         <div class="bath-add-item">
-          <select onchange="addBathItem('${bath.id}', this.value); this.value=''">
+          <select onchange="addBathItem('${instance.instanceId}', this.value); this.value=''">
             ${addOpts}
           </select>
         </div>
@@ -271,7 +253,12 @@ function renderOneBathroom(bath) {
 
       <div class="bath-total">
         <span>${s('bathroomTotal')}</span>
-        <strong id="bath-total-${bath.id}">${fmt(bathTotal)}</strong>
+        <strong id="bath-total-${instance.instanceId}">${fmt(calcOneBathroom(bathData))}</strong>
       </div>
+
+      <div class="config-subtotal" id="subtotal-${instance.instanceId}">
+        ${s('componentEstimate')} <strong>${fmt(estimate)}</strong>
+      </div>
+      ${renderFinalPriceRow(instance.instanceId, estimate)}
     </div>`;
 }

@@ -3,10 +3,8 @@
 const state = {
   category: 'interior',
   lang: 'en',
-  selected: [],
-  values: {},
-  bathrooms: [],
-  finalPrices: {},
+  instances: [],    // [{instanceId, compId, values, bathData?}]
+  finalPrices: {},  // {instanceId: price}
   profile: {
     clientName: '', serviceLocation: '', contactInfo: '',
     companyName: '', companyEmail: '',
@@ -16,16 +14,18 @@ const state = {
   }
 };
 
-const STORAGE_KEY = 'renovation-calc-v1';
+const STORAGE_KEY = 'renovation-calc-v2';
+
+function genId() {
+  return Math.random().toString(36).slice(2, 10);
+}
 
 function saveState() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
       category:    state.category,
       lang:        state.lang,
-      selected:    state.selected,
-      values:      state.values,
-      bathrooms:   state.bathrooms,
+      instances:   state.instances,
       finalPrices: state.finalPrices,
       profile:     state.profile
     }));
@@ -39,9 +39,7 @@ function loadState() {
     const saved = JSON.parse(raw);
     state.category    = saved.category    || 'interior';
     state.lang        = saved.lang        || 'en';
-    state.selected    = saved.selected    || [];
-    state.values      = saved.values      || {};
-    state.bathrooms   = saved.bathrooms   || [];
+    state.instances   = saved.instances   || [];
     state.finalPrices = saved.finalPrices || {};
     if (saved.profile) Object.assign(state.profile, saved.profile);
     const enBtn = document.getElementById('lang-btn-en');
@@ -91,7 +89,18 @@ function getComponent(id) {
   return null;
 }
 
-function getValues(compId) { return state.values[compId] || {}; }
+function getInstance(instanceId) {
+  return state.instances.find(i => i.instanceId === instanceId) || null;
+}
+
+function getInstancesOf(compId) {
+  return state.instances.filter(i => i.compId === compId);
+}
+
+function getValues(instanceId) {
+  const inst = getInstance(instanceId);
+  return inst ? (inst.values || {}) : {};
+}
 
 function initValues(comp) {
   const vals = {};
@@ -104,21 +113,16 @@ function initValues(comp) {
 
 // ---- Calculations ----
 
-function calcComponent(comp) {
-  if (comp.customType === 'bathroom') return calcAllBathrooms();
-  try { return comp.calculate(getValues(comp.id)); } catch { return 0; }
-}
-
-function calcLabourTotal(bath) {
-  const w = parseFloat(bath.labour.workers)    || 0;
-  const r = parseFloat(bath.labour.pricePerDay) || 0;
-  const d = parseFloat(bath.labour.days)        || 0;
+function calcLabourTotal(bathData) {
+  const w = parseFloat(bathData.labour?.workers)     || 0;
+  const r = parseFloat(bathData.labour?.pricePerDay) || 0;
+  const d = parseFloat(bathData.labour?.days)        || 0;
   return w * r * d;
 }
 
-function calcOneBathroom(bath) {
-  const labour = calcLabourTotal(bath);
-  const items  = bath.items.reduce((sum, bi) => {
+function calcOneBathroom(bathData) {
+  const labour = calcLabourTotal(bathData);
+  const items  = (bathData.items || []).reduce((sum, bi) => {
     const def   = BATHROOM_ITEMS.find(i => i.id === bi.itemId);
     const price = parseFloat(bi.unitPrice) || (def ? def.defaultPrice : 0);
     return sum + (parseFloat(bi.qty) || 0) * price;
@@ -126,14 +130,17 @@ function calcOneBathroom(bath) {
   return labour + items;
 }
 
-function calcAllBathrooms() {
-  return state.bathrooms.reduce((sum, b) => sum + calcOneBathroom(b), 0);
+function calcInstance(instance) {
+  const comp = getComponent(instance.compId);
+  if (!comp) return 0;
+  if (comp.customType === 'bathroom') return calcOneBathroom(instance.bathData || {});
+  try { return comp.calculate(instance.values || {}); } catch { return 0; }
 }
 
-function getFinalPrice(comp) {
-  const override = state.finalPrices[comp.id];
+function getFinalPrice(instance) {
+  const override = state.finalPrices[instance.instanceId];
   if (override !== null && override !== undefined && override !== '') {
     return parseFloat(override) || 0;
   }
-  return Math.round(calcComponent(comp) * 1.35);
+  return Math.round(calcInstance(instance) * 1.35);
 }
