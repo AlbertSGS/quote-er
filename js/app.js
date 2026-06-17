@@ -84,23 +84,33 @@ function clearLogo() {
 
 // ---- Drag to reorder ----
 
-let _draggedId = null;
-let _dragOverId = null;
+let _draggedId      = null;
+let _dragOverId     = null;
+let _dragInsertBefore = true;
 
 function dragStart(event, instanceId) {
   _draggedId = instanceId;
   event.dataTransfer.effectAllowed = 'move';
-  const card = document.getElementById(`config-${instanceId}`);
-  if (card) {
-    const rect = card.getBoundingClientRect();
-    event.dataTransfer.setDragImage(card, event.clientX - rect.left, event.clientY - rect.top);
-  }
+
+  // Build a compact ghost: just the icon + title
+  const card  = document.getElementById(`config-${instanceId}`);
+  const icon  = card?.querySelector('.config-icon')?.textContent || '';
+  const title = card?.querySelector('h3')?.textContent || '';
+  const ghost = document.createElement('div');
+  ghost.className = 'drag-ghost';
+  ghost.textContent = `${icon} ${title}`;
+  document.body.appendChild(ghost);
+  event.dataTransfer.setDragImage(ghost, Math.round(ghost.offsetWidth / 2), Math.round(ghost.offsetHeight / 2));
+
   setTimeout(() => {
+    ghost.remove();
+    document.getElementById('config-cards')?.classList.add('cards-dragging');
     if (card) card.classList.add('dragging');
   }, 0);
 }
 
 function dragEnd(event, instanceId) {
+  document.getElementById('config-cards')?.classList.remove('cards-dragging');
   const card = document.getElementById(`config-${instanceId}`);
   if (card) card.classList.remove('dragging');
   _clearDragOver();
@@ -110,18 +120,24 @@ function dragEnd(event, instanceId) {
 function dragEnter(event, instanceId) {
   if (!_draggedId || instanceId === _draggedId) return;
   event.preventDefault();
-  if (_dragOverId !== instanceId) {
-    _clearDragOver();
-    _dragOverId = instanceId;
-    const el = document.getElementById(`config-${instanceId}`);
-    if (el) el.classList.add('drag-over');
-  }
 }
 
-function dragOver(event) {
-  if (!_draggedId) return;
+function dragOver(event, instanceId) {
+  if (!_draggedId || instanceId === _draggedId) return;
   event.preventDefault();
   event.dataTransfer.dropEffect = 'move';
+
+  const el = document.getElementById(`config-${instanceId}`);
+  if (!el) return;
+  const rect = el.getBoundingClientRect();
+  const insertBefore = event.clientY < rect.top + rect.height / 2;
+
+  if (_dragOverId !== instanceId || _dragInsertBefore !== insertBefore) {
+    _clearDragOver();
+    _dragOverId = instanceId;
+    _dragInsertBefore = insertBefore;
+    el.classList.add(insertBefore ? 'drag-above' : 'drag-below');
+  }
 }
 
 function dragLeave(event, instanceId) {
@@ -135,7 +151,8 @@ function dragDrop(event, targetId) {
   if (!_draggedId || _draggedId === targetId) { _draggedId = null; return; }
   const fromIdx = state.instances.findIndex(i => i.instanceId === _draggedId);
   const [moved] = state.instances.splice(fromIdx, 1);
-  const insertIdx = state.instances.findIndex(i => i.instanceId === targetId);
+  let insertIdx = state.instances.findIndex(i => i.instanceId === targetId);
+  if (!_dragInsertBefore) insertIdx++;
   state.instances.splice(insertIdx, 0, moved);
   _draggedId = null;
   render();
@@ -144,7 +161,7 @@ function dragDrop(event, targetId) {
 function _clearDragOver() {
   if (_dragOverId) {
     const el = document.getElementById(`config-${_dragOverId}`);
-    if (el) el.classList.remove('drag-over');
+    if (el) { el.classList.remove('drag-above'); el.classList.remove('drag-below'); }
     _dragOverId = null;
   }
 }

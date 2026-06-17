@@ -99,7 +99,7 @@ function renderConfigCard(instance) {
   return `
     <div class="config-card" id="config-${instance.instanceId}"
          ondragenter="dragEnter(event,'${instance.instanceId}')"
-         ondragover="dragOver(event)"
+         ondragover="dragOver(event,'${instance.instanceId}')"
          ondragleave="dragLeave(event,'${instance.instanceId}')"
          ondrop="dragDrop(event,'${instance.instanceId}')">
       <div class="config-header">

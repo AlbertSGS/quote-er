@@ -911,16 +911,35 @@ body {
 .drag-handle:active { cursor: grabbing; }
 
 .config-card.dragging {
-  opacity: 0.65;
-  box-shadow: 0 8px 28px rgba(0,0,0,0.18);
+  opacity: 0.5;
 }
-.config-card.dragging > *:not(.config-header) {
+
+/* All cards collapse while any drag is active */
+.cards-dragging .config-card > *:not(.config-header) {
   display: none;
 }
 
-.config-card.drag-over {
-  outline: 2px solid var(--orange);
-  outline-offset: 2px;
+/* Drop position indicators */
+.config-card.drag-above { border-top: 3px solid var(--orange); }
+.config-card.drag-below { border-bottom: 3px solid var(--orange); }
+
+/* Compact ghost: just icon + title */
+.drag-ghost {
+  position: fixed;
+  top: -1000px;
+  left: -1000px;
+  background: var(--navy);
+  color: white;
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.25);
 }
 
 /* ---- Print ---- */
