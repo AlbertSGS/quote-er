@@ -117,41 +117,46 @@ function dragEnd(event, instanceId) {
   _draggedId = null;
 }
 
-function dragEnter(event, instanceId) {
-  if (!_draggedId || instanceId === _draggedId) return;
-  event.preventDefault();
-}
-
-function dragOver(event, instanceId) {
-  if (!_draggedId || instanceId === _draggedId) return;
+// Handles dragover for the entire #config-cards container so gaps between
+// cards and areas above/below all cards register correctly.
+function containerDragOver(event) {
+  if (!_draggedId) return;
   event.preventDefault();
   event.dataTransfer.dropEffect = 'move';
 
-  const el = document.getElementById(`config-${instanceId}`);
-  if (!el) return;
-  const rect = el.getBoundingClientRect();
-  const insertBefore = event.clientY < rect.top + rect.height / 2;
+  const allCards = Array.from(document.querySelectorAll('#config-cards .config-card'))
+    .filter(c => c.id !== `config-${_draggedId}`);
+  if (allCards.length === 0) return;
 
-  if (_dragOverId !== instanceId || _dragInsertBefore !== insertBefore) {
+  // Scan midpoints top-to-bottom; insert before the first card whose midpoint
+  // is below the cursor, or after the last card if cursor is past all of them.
+  let targetCard   = allCards[allCards.length - 1];
+  let insertBefore = false;
+  for (let i = 0; i < allCards.length; i++) {
+    const rect = allCards[i].getBoundingClientRect();
+    if (event.clientY < rect.top + rect.height / 2) {
+      targetCard   = allCards[i];
+      insertBefore = true;
+      break;
+    }
+  }
+
+  const targetId = targetCard.id.replace('config-', '');
+  if (_dragOverId !== targetId || _dragInsertBefore !== insertBefore) {
     _clearDragOver();
-    _dragOverId = instanceId;
+    _dragOverId       = targetId;
     _dragInsertBefore = insertBefore;
-    el.classList.add(insertBefore ? 'drag-above' : 'drag-below');
+    targetCard.classList.add(insertBefore ? 'drag-above' : 'drag-below');
   }
 }
 
-function dragLeave(event, instanceId) {
-  if (event.currentTarget.contains(event.relatedTarget)) return;
-  if (_dragOverId === instanceId) _clearDragOver();
-}
-
-function dragDrop(event, targetId) {
+function containerDrop(event) {
   event.preventDefault();
   _clearDragOver();
-  if (!_draggedId || _draggedId === targetId) { _draggedId = null; return; }
+  if (!_draggedId || !_dragOverId) { _draggedId = null; return; }
   const fromIdx = state.instances.findIndex(i => i.instanceId === _draggedId);
   const [moved] = state.instances.splice(fromIdx, 1);
-  let insertIdx = state.instances.findIndex(i => i.instanceId === targetId);
+  let insertIdx = state.instances.findIndex(i => i.instanceId === _dragOverId);
   if (!_dragInsertBefore) insertIdx++;
   state.instances.splice(insertIdx, 0, moved);
   _draggedId = null;
