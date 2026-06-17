@@ -896,6 +896,33 @@ body {
   padding: 14px 18px 0;
 }
 
+/* ---- Drag to reorder ---- */
+
+.drag-handle {
+  color: rgba(255,255,255,0.35);
+  font-size: 15px;
+  line-height: 1;
+  cursor: grab;
+  padding: 0 8px 0 0;
+  flex-shrink: 0;
+  user-select: none;
+  letter-spacing: 1px;
+}
+.drag-handle:active { cursor: grabbing; }
+
+.config-card.dragging {
+  opacity: 0.65;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.18);
+}
+.config-card.dragging > *:not(.config-header) {
+  display: none;
+}
+
+.config-card.drag-over {
+  outline: 2px solid var(--orange);
+  outline-offset: 2px;
+}
+
 /* ---- Print ---- */
 
 @media print {

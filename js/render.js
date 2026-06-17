@@ -97,8 +97,15 @@ function renderConfigCard(instance) {
   const title       = showNum ? `${t(comp, 'name')} ${idx + 1}` : t(comp, 'name');
 
   return `
-    <div class="config-card" id="config-${instance.instanceId}">
+    <div class="config-card" id="config-${instance.instanceId}"
+         ondragenter="dragEnter(event,'${instance.instanceId}')"
+         ondragover="dragOver(event)"
+         ondragleave="dragLeave(event,'${instance.instanceId}')"
+         ondrop="dragDrop(event,'${instance.instanceId}')">
       <div class="config-header">
+        <span class="drag-handle" draggable="true"
+              ondragstart="dragStart(event,'${instance.instanceId}')"
+              ondragend="dragEnd(event,'${instance.instanceId}')">⠿</span>
         <span class="config-icon">${comp.icon}</span>
         <h3>${title}</h3>
         <button class="config-remove" onclick="removeInstance('${instance.instanceId}')">${s('removeBtn')}</button>

@@ -82,6 +82,73 @@ function clearLogo() {
   renderProfileSection();
 }
 
+// ---- Drag to reorder ----
+
+let _draggedId = null;
+let _dragOverId = null;
+
+function dragStart(event, instanceId) {
+  _draggedId = instanceId;
+  event.dataTransfer.effectAllowed = 'move';
+  const card = document.getElementById(`config-${instanceId}`);
+  if (card) {
+    const rect = card.getBoundingClientRect();
+    event.dataTransfer.setDragImage(card, event.clientX - rect.left, event.clientY - rect.top);
+  }
+  setTimeout(() => {
+    if (card) card.classList.add('dragging');
+  }, 0);
+}
+
+function dragEnd(event, instanceId) {
+  const card = document.getElementById(`config-${instanceId}`);
+  if (card) card.classList.remove('dragging');
+  _clearDragOver();
+  _draggedId = null;
+}
+
+function dragEnter(event, instanceId) {
+  if (!_draggedId || instanceId === _draggedId) return;
+  event.preventDefault();
+  if (_dragOverId !== instanceId) {
+    _clearDragOver();
+    _dragOverId = instanceId;
+    const el = document.getElementById(`config-${instanceId}`);
+    if (el) el.classList.add('drag-over');
+  }
+}
+
+function dragOver(event) {
+  if (!_draggedId) return;
+  event.preventDefault();
+  event.dataTransfer.dropEffect = 'move';
+}
+
+function dragLeave(event, instanceId) {
+  if (event.currentTarget.contains(event.relatedTarget)) return;
+  if (_dragOverId === instanceId) _clearDragOver();
+}
+
+function dragDrop(event, targetId) {
+  event.preventDefault();
+  _clearDragOver();
+  if (!_draggedId || _draggedId === targetId) { _draggedId = null; return; }
+  const fromIdx = state.instances.findIndex(i => i.instanceId === _draggedId);
+  const [moved] = state.instances.splice(fromIdx, 1);
+  const insertIdx = state.instances.findIndex(i => i.instanceId === targetId);
+  state.instances.splice(insertIdx, 0, moved);
+  _draggedId = null;
+  render();
+}
+
+function _clearDragOver() {
+  if (_dragOverId) {
+    const el = document.getElementById(`config-${_dragOverId}`);
+    if (el) el.classList.remove('drag-over');
+    _dragOverId = null;
+  }
+}
+
 // ---- Init ----
 
 loadState();
