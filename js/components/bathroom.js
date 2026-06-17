@@ -146,8 +146,13 @@ function refreshBathTotals(bathId) {
   });
   const btEl = document.getElementById(`bath-total-${bathId}`);
   if (btEl) btEl.textContent = fmt(calcOneBathroom(bath));
+  const allTotal = calcAllBathrooms();
   const subEl = document.getElementById('subtotal-bathroom');
-  if (subEl) subEl.innerHTML = `${s('componentEstimate')} <strong>${fmt(calcAllBathrooms())}</strong>`;
+  if (subEl) subEl.innerHTML = `${s('componentEstimate')} <strong>${fmt(allTotal)}</strong>`;
+  if (!state.finalPrices['bathroom']) {
+    const fpInput = document.getElementById('finalprice-input-bathroom');
+    if (fpInput) fpInput.value = Math.round(allTotal * 1.135);
+  }
 }
 
 function rerenderBathroomManager() {
@@ -159,6 +164,7 @@ function rerenderBathroomManager() {
 // ---- Bathroom render ----
 
 function renderBathroomManager() {
+  const estimate = calcAllBathrooms();
   return `
     <div class="config-card" id="config-bathroom">
       <div class="config-header">
@@ -173,8 +179,9 @@ function renderBathroomManager() {
         <button class="btn-add-bathroom" onclick="addBathroom()">${s('addBathroom')}</button>
       </div>
       <div class="config-subtotal" id="subtotal-bathroom">
-        ${s('componentEstimate')} <strong>${fmt(calcAllBathrooms())}</strong>
+        ${s('componentEstimate')} <strong>${fmt(estimate)}</strong>
       </div>
+      ${renderFinalPriceRow('bathroom', estimate)}
     </div>`;
 }
 

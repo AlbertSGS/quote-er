@@ -47,7 +47,7 @@ function buildDocDef(logoSvg) {
   const p      = state.profile;
 
   const ordered = state.selected.map(id => getComponent(id)).filter(Boolean);
-  const total   = ordered.reduce((sum, comp) => sum + calcComponent(comp), 0);
+  const total   = ordered.reduce((sum, comp) => sum + getFinalPrice(comp), 0);
 
   const logoEl = logoSvg
     ? { image: logoSvg, width: 260, alignment: 'center' }
@@ -154,33 +154,30 @@ function buildSectionRows(comp, isZh) {
   const noDesc = { text: '—', fontSize: 9, color: '#AAA', italics: true };
 
   if (comp.customType === 'bathroom') {
-    const single = state.bathrooms.length === 1;
-    const rows   = [];
+    const n = state.bathrooms.length;
+    if (n === 0) return [[{ text: '—', colSpan: 3, fontSize: 9, color: '#AAA' }, {}, {}]];
+    const itemName = n === 1
+      ? (isZh ? '浴室装修' : 'Bathroom Renovation')
+      : (isZh ? `浴室装修 (${n} 间)` : `Bathroom Renovation (${n})`);
+    const allItems = [];
     state.bathrooms.forEach(bath => {
-      const itemName = single
-        ? (isZh ? '浴室装修' : 'Bathroom Renovation')
-        : (isZh ? `浴室 ${bath.label}` : `Bathroom ${bath.label}`);
-      const detailLines = bath.items
-        .map(bi => {
-          const def = BATHROOM_ITEMS.find(d => d.id === bi.itemId);
-          if (!def) return null;
-          const qty = parseFloat(bi.qty);
-          return t(def, 'label') + (qty && qty !== 1 ? ` ×${qty}` : '');
-        })
-        .filter(Boolean);
-      const descStack = detailLines.length
-        ? { stack: detailLines.map(l => ({ text: l, fontSize: 9 })) }
-        : noDesc;
-      rows.push([
-        { text: itemName, fontSize: 9 },
-        descStack,
-        { text: fmt(calcOneBathroom(bath)), fontSize: 9, bold: true, alignment: 'right' }
-      ]);
+      bath.items.forEach(bi => {
+        const def = BATHROOM_ITEMS.find(d => d.id === bi.itemId);
+        if (!def) return;
+        const qty = parseFloat(bi.qty);
+        allItems.push(t(def, 'label') + (qty && qty !== 1 ? ` ×${qty}` : ''));
+      });
     });
-    return rows.length ? rows : [[{ text: '—', colSpan: 3, fontSize: 9, color: '#AAA' }, {}, {}]];
+    const descStack = allItems.length
+      ? { stack: allItems.map(l => ({ text: l, fontSize: 9 })) }
+      : noDesc;
+    return [[
+      { text: itemName, fontSize: 9 },
+      descStack,
+      { text: fmt(getFinalPrice(comp)), fontSize: 9, bold: true, alignment: 'right' }
+    ]];
   }
 
-  const price   = calcComponent(comp);
   const details = describeCompForQuote(comp);
   const descStack = details.length
     ? { stack: details.map(l => ({ text: l, fontSize: 9 })) }
@@ -188,7 +185,7 @@ function buildSectionRows(comp, isZh) {
   return [[
     { text: t(comp, 'name'), fontSize: 9 },
     descStack,
-    { text: fmt(price), fontSize: 9, bold: true, alignment: 'right' }
+    { text: fmt(getFinalPrice(comp)), fontSize: 9, bold: true, alignment: 'right' }
   ]];
 }
 

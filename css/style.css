@@ -735,6 +735,86 @@ body {
 }
 .bath-total strong { color: var(--orange); font-size: 15px; font-weight: 700; }
 
+/* ---- Final Price Row ---- */
+
+.final-price-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 18px 12px;
+  background: var(--orange-bg);
+  border-top: 2px solid #F5D9BB;
+  gap: 12px;
+}
+
+.final-price-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.final-price-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.final-price-auto-hint {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.final-price-row.has-override .final-price-auto-hint { display: none; }
+
+.final-price-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.final-price-prefix {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--orange);
+}
+
+.final-price-input {
+  width: 120px;
+  padding: 6px 8px;
+  border: 2px solid var(--orange);
+  border-radius: var(--radius-sm);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--orange);
+  background: white;
+  text-align: right;
+  font-family: inherit;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.final-price-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(224,123,31,0.2);
+}
+
+.final-price-reset {
+  background: none;
+  border: none;
+  color: var(--border);
+  font-size: 15px;
+  padding: 5px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: inherit;
+  line-height: 1;
+  transition: background 0.15s, color 0.15s;
+}
+
+.final-price-row.has-override .final-price-reset { color: var(--orange); }
+.final-price-reset:hover { background: white; color: var(--orange); }
+
 /* ---- Profile Section ---- */
 
 .profile-logo-area {

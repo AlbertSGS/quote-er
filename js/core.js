@@ -6,6 +6,7 @@ const state = {
   selected: [],
   values: {},
   bathrooms: [],
+  finalPrices: {},
   profile: {
     clientName: '', serviceLocation: '', contactInfo: '',
     companyName: '', companyEmail: '',
@@ -20,12 +21,13 @@ const STORAGE_KEY = 'renovation-calc-v1';
 function saveState() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      category:  state.category,
-      lang:      state.lang,
-      selected:  state.selected,
-      values:    state.values,
-      bathrooms: state.bathrooms,
-      profile:   state.profile
+      category:    state.category,
+      lang:        state.lang,
+      selected:    state.selected,
+      values:      state.values,
+      bathrooms:   state.bathrooms,
+      finalPrices: state.finalPrices,
+      profile:     state.profile
     }));
   } catch (e) {}
 }
@@ -35,11 +37,12 @@ function loadState() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return;
     const saved = JSON.parse(raw);
-    state.category  = saved.category  || 'interior';
-    state.lang      = saved.lang      || 'en';
-    state.selected  = saved.selected  || [];
-    state.values    = saved.values    || {};
-    state.bathrooms = saved.bathrooms || [];
+    state.category    = saved.category    || 'interior';
+    state.lang        = saved.lang        || 'en';
+    state.selected    = saved.selected    || [];
+    state.values      = saved.values      || {};
+    state.bathrooms   = saved.bathrooms   || [];
+    state.finalPrices = saved.finalPrices || {};
     if (saved.profile) Object.assign(state.profile, saved.profile);
     const enBtn = document.getElementById('lang-btn-en');
     const zhBtn = document.getElementById('lang-btn-zh');
@@ -125,4 +128,12 @@ function calcOneBathroom(bath) {
 
 function calcAllBathrooms() {
   return state.bathrooms.reduce((sum, b) => sum + calcOneBathroom(b), 0);
+}
+
+function getFinalPrice(comp) {
+  const override = state.finalPrices[comp.id];
+  if (override !== null && override !== undefined && override !== '') {
+    return parseFloat(override) || 0;
+  }
+  return Math.round(calcComponent(comp) * 1.135);
 }

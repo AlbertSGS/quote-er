@@ -60,9 +60,31 @@ function renderConfigs() {
   container.innerHTML = ordered.map(renderConfigCard).join('');
 }
 
+function renderFinalPriceRow(compId, estimate) {
+  const hasOverride = state.finalPrices[compId] != null;
+  const value = hasOverride
+    ? (parseFloat(state.finalPrices[compId]) || 0)
+    : Math.round(estimate * 1.135);
+  return `
+    <div class="final-price-row${hasOverride ? ' has-override' : ''}" id="finalprice-row-${compId}">
+      <div class="final-price-left">
+        <span class="final-price-label">Final Price</span>
+        <span class="final-price-auto-hint">auto · 13.5% margin</span>
+      </div>
+      <div class="final-price-right">
+        <span class="final-price-prefix">$</span>
+        <input type="number" class="final-price-input" id="finalprice-input-${compId}"
+               min="0" step="1" value="${Math.round(value)}"
+               oninput="updateFinalPrice('${compId}', this.value)" />
+        <button class="final-price-reset" onclick="resetFinalPrice('${compId}')" title="Reset to auto (1.135× estimate)">↺</button>
+      </div>
+    </div>`;
+}
+
 function renderConfigCard(comp) {
   if (comp.customType === 'bathroom') return renderBathroomManager();
-  const vals = getValues(comp.id);
+  const vals     = getValues(comp.id);
+  const estimate = calcComponent(comp);
   return `
     <div class="config-card" id="config-${comp.id}">
       <div class="config-header">
@@ -74,8 +96,9 @@ function renderConfigCard(comp) {
         ${comp.fields.map(f => renderField(comp.id, f, vals)).join('')}
       </div>
       <div class="config-subtotal" id="subtotal-${comp.id}">
-        ${s('componentEstimate')} <strong>${fmt(calcComponent(comp))}</strong>
+        ${s('componentEstimate')} <strong>${fmt(estimate)}</strong>
       </div>
+      ${renderFinalPriceRow(comp.id, estimate)}
     </div>`;
 }
 
@@ -105,7 +128,13 @@ function renderField(compId, field, vals) {
 function updateSubtotal(compId) {
   const el   = document.getElementById(`subtotal-${compId}`);
   const comp = getComponent(compId);
-  if (el && comp) el.innerHTML = `${s('componentEstimate')} <strong>${fmt(calcComponent(comp))}</strong>`;
+  if (!el || !comp) return;
+  const estimate = calcComponent(comp);
+  el.innerHTML = `${s('componentEstimate')} <strong>${fmt(estimate)}</strong>`;
+  if (!state.finalPrices[compId]) {
+    const fpInput = document.getElementById(`finalprice-input-${compId}`);
+    if (fpInput) fpInput.value = Math.round(estimate * 1.135);
+  }
 }
 
 // ---- Summary ----
@@ -118,7 +147,7 @@ function renderSummary() {
     container.innerHTML = `<p class="summary-empty-msg">${s('emptyPrompt')}</p>`;
     return;
   }
-  const lines    = ordered.map(comp => ({ comp, amount: calcComponent(comp) }));
+  const lines    = ordered.map(comp => ({ comp, amount: getFinalPrice(comp) }));
   const total    = lines.reduce((sum, l) => sum + l.amount, 0);
 
   container.innerHTML = `

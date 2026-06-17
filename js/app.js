@@ -26,18 +26,38 @@ function updateValue(compId, fieldId, value) {
 
 function switchCategory(cat) {
   if (state.category === cat) return;
-  state.category  = cat;
-  state.selected  = [];
-  state.values    = {};
-  state.bathrooms = [];
+  state.category    = cat;
+  state.selected    = [];
+  state.values      = {};
+  state.bathrooms   = [];
+  state.finalPrices = {};
   render();
 }
 
 function resetAll() {
-  state.selected  = [];
-  state.values    = {};
-  state.bathrooms = [];
+  state.selected    = [];
+  state.values      = {};
+  state.bathrooms   = [];
+  state.finalPrices = {};
   render();
+}
+
+function updateFinalPrice(compId, value) {
+  state.finalPrices[compId] = value === '' ? null : value;
+  const row = document.getElementById(`finalprice-row-${compId}`);
+  if (row) row.classList.toggle('has-override', value !== '');
+  renderSummary();
+}
+
+function resetFinalPrice(compId) {
+  state.finalPrices[compId] = null;
+  const row = document.getElementById(`finalprice-row-${compId}`);
+  if (row) row.classList.remove('has-override');
+  const comp = getComponent(compId);
+  if (!comp) return;
+  const fpInput = document.getElementById(`finalprice-input-${compId}`);
+  if (fpInput) fpInput.value = Math.round(calcComponent(comp) * 1.135);
+  renderSummary();
 }
 
 function updateProfile(field, value) {
