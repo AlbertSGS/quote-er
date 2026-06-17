@@ -135,5 +135,5 @@ function getFinalPrice(comp) {
   if (override !== null && override !== undefined && override !== '') {
     return parseFloat(override) || 0;
   }
-  return Math.round(calcComponent(comp) * 1.135);
+  return Math.round(calcComponent(comp) * 1.35);
 }

@@ -64,19 +64,19 @@ function renderFinalPriceRow(compId, estimate) {
   const hasOverride = state.finalPrices[compId] != null;
   const value = hasOverride
     ? (parseFloat(state.finalPrices[compId]) || 0)
-    : Math.round(estimate * 1.135);
+    : Math.round(estimate * 1.35);
   return `
     <div class="final-price-row${hasOverride ? ' has-override' : ''}" id="finalprice-row-${compId}">
       <div class="final-price-left">
         <span class="final-price-label">Final Price</span>
-        <span class="final-price-auto-hint">auto · 13.5% margin</span>
+        <span class="final-price-auto-hint">auto · 35% margin</span>
       </div>
       <div class="final-price-right">
         <span class="final-price-prefix">$</span>
         <input type="number" class="final-price-input" id="finalprice-input-${compId}"
                min="0" step="1" value="${Math.round(value)}"
                oninput="updateFinalPrice('${compId}', this.value)" />
-        <button class="final-price-reset" onclick="resetFinalPrice('${compId}')" title="Reset to auto (1.135× estimate)">↺</button>
+        <button class="final-price-reset" onclick="resetFinalPrice('${compId}')" title="Reset to auto (1.35× estimate)">↺</button>
       </div>
     </div>`;
 }
@@ -133,7 +133,7 @@ function updateSubtotal(compId) {
   el.innerHTML = `${s('componentEstimate')} <strong>${fmt(estimate)}</strong>`;
   if (!state.finalPrices[compId]) {
     const fpInput = document.getElementById(`finalprice-input-${compId}`);
-    if (fpInput) fpInput.value = Math.round(estimate * 1.135);
+    if (fpInput) fpInput.value = Math.round(estimate * 1.35);
   }
 }
 

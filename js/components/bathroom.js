@@ -151,7 +151,7 @@ function refreshBathTotals(bathId) {
   if (subEl) subEl.innerHTML = `${s('componentEstimate')} <strong>${fmt(allTotal)}</strong>`;
   if (!state.finalPrices['bathroom']) {
     const fpInput = document.getElementById('finalprice-input-bathroom');
-    if (fpInput) fpInput.value = Math.round(allTotal * 1.135);
+    if (fpInput) fpInput.value = Math.round(allTotal * 1.35);
   }
 }
 

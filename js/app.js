@@ -56,7 +56,7 @@ function resetFinalPrice(compId) {
   const comp = getComponent(compId);
   if (!comp) return;
   const fpInput = document.getElementById(`finalprice-input-${compId}`);
-  if (fpInput) fpInput.value = Math.round(calcComponent(comp) * 1.135);
+  if (fpInput) fpInput.value = Math.round(calcComponent(comp) * 1.35);
   renderSummary();
 }
 
