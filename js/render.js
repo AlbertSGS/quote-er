@@ -14,6 +14,7 @@ function renderStaticText() {
   setElText('btn-reset',             s('reset'));
   setElText('btn-print-header',      s('printEstimate'));
   setElText('section-select-title',  s('selectComponents'));
+  setElText('section-select-hint',   s('selectComponentsHint'));
   setElText('section-config-title',  s('configureItems'));
   setElText('summary-title',         s('estimateSummary'));
 }
