@@ -45,7 +45,8 @@ function renderGrid() {
     else if (count > 1) badge = String(count);
     return `
       <div class="comp-card ${active ? 'selected' : ''} ${comp.comingSoon ? 'coming-soon' : ''}"
-           onclick="${comp.comingSoon ? '' : `addInstance('${comp.id}')`}">
+           onclick="${comp.comingSoon ? '' : `addInstance('${comp.id}')`}"
+           oncontextmenu="${comp.comingSoon ? '' : `return removeLastInstanceOf('${comp.id}')`}">
         <div class="comp-check">${badge}</div>
         <div class="comp-icon">${comp.icon}</div>
         <div class="comp-name">${t(comp, 'name')}</div>

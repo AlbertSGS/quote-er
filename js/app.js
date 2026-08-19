@@ -18,6 +18,12 @@ function removeInstance(instanceId) {
   render();
 }
 
+function removeLastInstanceOf(compId) {
+  const matches = getInstancesOf(compId);
+  if (matches.length > 0) removeInstance(matches[matches.length - 1].instanceId);
+  return false;
+}
+
 function updateValue(instanceId, fieldId, value) {
   const inst = getInstance(instanceId);
   if (!inst) return;
